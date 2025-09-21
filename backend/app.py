@@ -4,12 +4,18 @@ import sqlite3
 import json
 from datetime import datetime
 import os
+import pytz
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for React frontend
 
 # Database configuration
 DATABASE = 'treatments.db'
+
+def get_israel_time():
+    """Get current time in Israel timezone."""
+    israel_tz = pytz.timezone('Asia/Jerusalem')
+    return datetime.now(israel_tz)
 
 def get_db_connection():
     """Create a database connection."""
@@ -27,7 +33,7 @@ def init_db():
             treatment_type TEXT NOT NULL,
             treatment_date TEXT NOT NULL,
             notes TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            created_at TEXT NOT NULL
         )
     ''')
     conn.commit()
@@ -40,7 +46,7 @@ def validate_treatment_data(data):
     if not data.get('patient_name') or not data['patient_name'].strip():
         errors.append('Patient name is required')
     
-    if not data.get('treatment_type') or data['treatment_type'] not in ['Physiotherapy', 'Ultrasound', 'Stimulation']:
+    if not data.get('treatment_type') or data['treatment_type'].lower() not in ['physiotherapy', 'ultrasound', 'stimulation']:
         errors.append('Valid treatment type is required (Physiotherapy, Ultrasound, or Stimulation)')
     
     if not data.get('treatment_date'):
@@ -70,14 +76,16 @@ def create_treatment():
         
         # Insert into database
         conn = get_db_connection()
+        israel_time = get_israel_time().isoformat()
         cursor = conn.execute('''
-            INSERT INTO treatments (patient_name, treatment_type, treatment_date, notes)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO treatments (patient_name, treatment_type, treatment_date, notes, created_at)
+            VALUES (?, ?, ?, ?, ?)
         ''', (
             data['patient_name'].strip(),
             data['treatment_type'],
             data['treatment_date'],
-            data.get('notes', '').strip()
+            data.get('notes', '').strip(),
+            israel_time
         ))
         
         treatment_id = cursor.lastrowid

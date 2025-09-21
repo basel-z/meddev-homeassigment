@@ -43,7 +43,6 @@ body {
 
 .logo {
   width: 200px;
-  height: 200px;
   object-fit: contain;
   margin: 0;
   padding: 0;
@@ -68,7 +67,6 @@ body {
 @media (max-width: 768px) {
   .logo {
     width: 150px;
-    height: 150px;
   }
   
   .app-header h1 {

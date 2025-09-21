@@ -28,10 +28,9 @@ const TreatmentStatistics = ({ treatments }) => {
   const oldestDate = dates.length > 0 ? dates[0] : null;
   const newestDate = dates.length > 0 ? dates[dates.length - 1] : null;
 
-  // Get most common treatment type
-  const mostCommonType = Object.entries(typeStats).reduce((a, b) => 
-    typeStats[a[0]] > typeStats[b[0]] ? a : b, ['', 0]
-  );
+  // Get most common treatment type(s)
+  const maxCount = Math.max(...Object.values(typeStats));
+  const mostCommonTypes = Object.entries(typeStats).filter(([type, count]) => count === maxCount);
 
   if (totalTreatments === 0) {
     return (
@@ -58,9 +57,16 @@ const TreatmentStatistics = ({ treatments }) => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-value">{mostCommonType[0] || 'N/A'}</div>
-          <div className="stat-label">Most Common Type</div>
-          <div className="stat-subtext">({mostCommonType[1]} treatments)</div>
+          <div className="stat-value">
+            {mostCommonTypes.length > 0 
+              ? mostCommonTypes.map(([type]) => type).join(', ') 
+              : 'N/A'
+            }
+          </div>
+          <div className="stat-label">Most Common Type{mostCommonTypes.length > 1 ? 's' : ''}</div>
+          <div className="stat-subtext">
+            ({mostCommonTypes.length > 0 ? mostCommonTypes[0][1] : 0} treatments each)
+          </div>
         </div>
 
         <div className="stat-card">
