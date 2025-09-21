@@ -1,10 +1,54 @@
 import React, { useState, useEffect } from 'react';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Container,
+  Box,
+  Button,
+  Alert,
+  Stack,
+  Paper,
+} from '@mui/material';
+import {
+  Add,
+  Refresh,
+  Assessment,
+  LocalHospital,
+} from '@mui/icons-material';
 import TreatmentForm from './components/TreatmentForm';
 import TreatmentList from './components/TreatmentList';
 import TreatmentFilters from './components/TreatmentFilters';
 import TreatmentStatistics from './components/TreatmentStatistics';
 import { treatmentService } from './services/api';
-import './styles.css';
+
+// Create Material UI theme
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#667eea',
+    },
+    secondary: {
+      main: '#764ba2',
+    },
+    background: {
+      default: '#f8f9fa',
+    },
+  },
+  typography: {
+    fontFamily: [
+      '-apple-system',
+      'BlinkMacSystemFont',
+      '"Segoe UI"',
+      'Roboto',
+      '"Helvetica Neue"',
+      'Arial',
+      'sans-serif',
+    ].join(','),
+  },
+});
 
 function App() {
   const [treatments, setTreatments] = useState([]);
@@ -64,8 +108,12 @@ function App() {
 
   // Get unique treatment types for filter dropdown
   const getAvailableTypes = () => {
-    const types = [...new Set(treatments.map(t => t.treatment_type))];
-    return types.sort();
+    if (!treatments || treatments.length === 0) {
+      // Return default types if no treatments are loaded yet
+      return ['Physiotherapy', 'Ultrasound', 'Stimulation'];
+    }
+    const types = [...new Set(treatments.map(t => t.treatment_type))].filter(Boolean);
+    return types.length > 0 ? types.sort() : ['Physiotherapy', 'Ultrasound', 'Stimulation'];
   };
 
   const handleTreatmentCreated = async () => {
@@ -78,91 +126,119 @@ function App() {
   };
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <div className="header-content">
-          <img src={require('./meddevlogo.png')} alt="Health Tracker Logo" className="logo" />
-          <div className="header-text">
-            <h1>Digital Health Treatment Tracker</h1>
-            <p>Manage patient treatments efficiently</p>
-          </div>
-        </div>
-      </header>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        {/* App Header */}
+        <AppBar position="static" sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+          <Toolbar>
+            <LocalHospital sx={{ mr: 2 }} />
+            <Box sx={{ flexGrow: 1 }}>
+              <Typography variant="h5" component="h1">
+                Digital Health Treatment Tracker
+              </Typography>
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                Manage patient treatments efficiently
+              </Typography>
+            </Box>
+            <Box
+              component="img"
+              src={require('./meddevlogo.png')}
+              alt="Health Tracker Logo"
+              sx={{ height: 40, ml: 2 }}
+            />
+          </Toolbar>
+        </AppBar>
 
-      <main className="app-main">
-        {error ? (
-          <div className="error-banner">
-            <p>{error}</p>
-            <button onClick={loadTreatments} className="retry-button">
-              Retry
-            </button>
-          </div>
-        ) : (
-          <>
-            <div className="action-bar">
-              <button
-                onClick={() => setIsFormVisible(!isFormVisible)}
-                className="primary-button"
-              >
-                {isFormVisible ? 'Cancel' : 'Add New Treatment'}
-              </button>
-              
-              <button
-                onClick={loadTreatments}
-                className="secondary-button"
-                disabled={loading}
-              >
-                {loading ? 'Refreshing...' : 'Refresh'}
-              </button>
+        {/* Main Content */}
+        <Container maxWidth="xl" sx={{ flexGrow: 1, py: 4 }}>
+          {error ? (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              <Typography variant="body1" gutterBottom>
+                {error}
+              </Typography>
+              <Button onClick={loadTreatments} variant="outlined" size="small">
+                Retry
+              </Button>
+            </Alert>
+          ) : (
+            <Stack spacing={3}>
+              {/* Action Bar */}
+              <Paper elevation={1} sx={{ p: 2 }}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                  <Button
+                    onClick={() => setIsFormVisible(!isFormVisible)}
+                    variant="contained"
+                    startIcon={<Add />}
+                    size="large"
+                  >
+                    {isFormVisible ? 'Cancel' : 'Add New Treatment'}
+                  </Button>
+                  
+                  <Button
+                    onClick={loadTreatments}
+                    variant="outlined"
+                    startIcon={<Refresh />}
+                    disabled={loading}
+                  >
+                    {loading ? 'Refreshing...' : 'Refresh'}
+                  </Button>
 
-              <button
-                onClick={() => setShowStatistics(!showStatistics)}
-                className="secondary-button"
-              >
-                {showStatistics ? 'Hide Statistics' : 'Show Statistics'}
-              </button>
-            </div>
+                  <Button
+                    onClick={() => setShowStatistics(!showStatistics)}
+                    variant="outlined"
+                    startIcon={<Assessment />}
+                  >
+                    {showStatistics ? 'Hide Statistics' : 'Show Statistics'}
+                  </Button>
+                </Stack>
+              </Paper>
 
-            {isFormVisible && (
-              <div className="form-section">
-                <h2>Create New Treatment</h2>
+              {/* Treatment Form */}
+              {isFormVisible && (
                 <TreatmentForm
                   onTreatmentCreated={handleTreatmentCreated}
                   onCancel={() => setIsFormVisible(false)}
                 />
-              </div>
-            )}
+              )}
 
-            {showStatistics && (
-              <div className="statistics-section">
+              {/* Treatment Statistics */}
+              {showStatistics && (
                 <TreatmentStatistics treatments={getFilteredTreatments()} />
-              </div>
-            )}
+              )}
 
-            <div className="filters-section">
+              {/* Treatment Filters */}
               <TreatmentFilters
                 filters={filters}
                 onFiltersChange={setFilters}
                 availableTypes={getAvailableTypes()}
               />
-            </div>
 
-            <div className="list-section">
-              <h2>Treatment Records</h2>
-              <TreatmentList
-                treatments={getFilteredTreatments()}
-                loading={loading}
-                onTreatmentDeleted={handleTreatmentDeleted}
-              />
-            </div>
-          </>
-        )}
-      </main>
+              {/* Treatment List */}
+              <Box>
+                <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
+                  Treatment Records
+                </Typography>
+                <TreatmentList
+                  treatments={getFilteredTreatments()}
+                  loading={loading}
+                  onTreatmentDeleted={handleTreatmentDeleted}
+                />
+              </Box>
+            </Stack>
+          )}
+        </Container>
 
-      <footer className="app-footer">
-        <p>&copy; 2025 Digital Health Treatment Tracker</p>
-      </footer>
-    </div>
+        {/* Footer */}
+        <Paper component="footer" elevation={1} sx={{ py: 2, mt: 'auto' }}>
+          <Container maxWidth="xl">
+            <Typography variant="body2" color="text.secondary" align="center">
+              &copy; 2025 Digital Health Treatment Tracker
+            </Typography>
+          </Container>
+        </Paper>
+      </Box>
+    </ThemeProvider>
   );
 }
 

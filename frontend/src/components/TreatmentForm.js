@@ -17,6 +17,21 @@
  */
 
 import React, { useState } from 'react';
+import {
+  Paper,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Button,
+  Box,
+  Typography,
+  Alert,
+  CircularProgress,
+  Stack,
+} from '@mui/material';
+import { Save, Refresh, Cancel } from '@mui/icons-material';
 import { treatmentService } from '../services/api';
 
 const TreatmentForm = ({ onTreatmentCreated, onCancel }) => {
@@ -164,134 +179,138 @@ const TreatmentForm = ({ onTreatmentCreated, onCancel }) => {
   };
 
   return (
-    <div className="treatment-form">
-      <form onSubmit={handleSubmit} className="form">
+    <Paper elevation={2} sx={{ p: 3 }}>
+      <Typography variant="h6" gutterBottom>
+        Create New Treatment
+      </Typography>
+
+      <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
         {/* Error Messages Display */}
         {errors.length > 0 && (
-          <div className="error-messages">
-            <h4>Please fix the following errors:</h4>
-            <ul>
+          <Alert severity="error" sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" gutterBottom>
+              Please fix the following errors:
+            </Typography>
+            <ul style={{ margin: 0, paddingLeft: '20px' }}>
               {errors.map((error, index) => (
                 <li key={index}>{error}</li>
               ))}
             </ul>
-          </div>
+          </Alert>
         )}
 
-        {/* Patient Name Input */}
-        <div className="form-group">
-          <label htmlFor="patient_name" className="form-label">
-            Patient Name *
-          </label>
-          <input
-            type="text"
+        <Stack spacing={3}>
+          {/* Patient Name Input */}
+          <TextField
+            fullWidth
             id="patient_name"
             name="patient_name"
+            label="Patient Name"
             value={formData.patient_name}
             onChange={handleInputChange}
-            className={`form-input ${fieldErrors.patient_name ? 'error' : ''}`}
+            error={!!fieldErrors.patient_name}
+            helperText={fieldErrors.patient_name}
             placeholder="Enter patient's full name"
             disabled={loading}
             required
+            variant="outlined"
           />
-          {fieldErrors.patient_name && (
-            <span className="field-error">{fieldErrors.patient_name}</span>
-          )}
-        </div>
 
-        {/* Treatment Type Selection */}
-        <div className="form-group">
-          <label htmlFor="treatment_type" className="form-label">
-            Treatment Type *
-          </label>
-          <select
-            id="treatment_type"
-            name="treatment_type"
-            value={formData.treatment_type}
-            onChange={handleInputChange}
-            className={`form-select ${fieldErrors.treatment_type ? 'error' : ''}`}
-            disabled={loading}
-            required
-          >
-            <option value="">Select a treatment type</option>
-            {treatmentTypes.map(type => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
-          {fieldErrors.treatment_type && (
-            <span className="field-error">{fieldErrors.treatment_type}</span>
-          )}
-        </div>
+          {/* Treatment Type Selection */}
+          <FormControl fullWidth error={!!fieldErrors.treatment_type} required>
+            <InputLabel id="treatment-type-label">Treatment Type</InputLabel>
+            <Select
+              labelId="treatment-type-label"
+              id="treatment_type"
+              name="treatment_type"
+              value={formData.treatment_type}
+              onChange={handleInputChange}
+              label="Treatment Type"
+              disabled={loading}
+            >
+              {treatmentTypes.map(type => (
+                <MenuItem key={type} value={type}>
+                  {type}
+                </MenuItem>
+              ))}
+            </Select>
+            {fieldErrors.treatment_type && (
+              <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
+                {fieldErrors.treatment_type}
+              </Typography>
+            )}
+          </FormControl>
 
-        {/* Treatment Date Input */}
-        <div className="form-group">
-          <label htmlFor="treatment_date" className="form-label">
-            Treatment Date *
-          </label>
-          <input
-            type="date"
+          {/* Treatment Date Input */}
+          <TextField
+            fullWidth
             id="treatment_date"
             name="treatment_date"
+            label="Treatment Date"
+            type="date"
             value={formData.treatment_date}
             onChange={handleInputChange}
-            className={`form-input ${fieldErrors.treatment_date ? 'error' : ''}`}
+            error={!!fieldErrors.treatment_date}
+            helperText={fieldErrors.treatment_date}
             disabled={loading}
             required
+            variant="outlined"
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
-          {fieldErrors.treatment_date && (
-            <span className="field-error">{fieldErrors.treatment_date}</span>
-          )}
-        </div>
 
-        {/* Notes Textarea */}
-        <div className="form-group">
-          <label htmlFor="notes" className="form-label">
-            Notes (Optional)
-          </label>
-          <textarea
+          {/* Notes Textarea */}
+          <TextField
+            fullWidth
             id="notes"
             name="notes"
+            label="Notes (Optional)"
             value={formData.notes}
             onChange={handleInputChange}
-            className="form-textarea"
             placeholder="Additional notes about the treatment..."
-            rows="4"
             disabled={loading}
+            variant="outlined"
+            multiline
+            rows={4}
           />
-        </div>
 
-        {/* Form Action Buttons */}
-        <div className="form-actions">
-          <button
-            type="submit"
-            className="submit-button"
-            disabled={loading}
-          >
-            {loading ? 'Creating...' : 'Create Treatment'}
-          </button>
-          
-          <button
-            type="button"
-            onClick={handleReset}
-            className="reset-button"
-            disabled={loading}
-          >
-            Reset
-          </button>
-          
-          <button
-            type="button"
-            onClick={onCancel}
-            className="cancel-button"
-            disabled={loading}
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
+          {/* Form Action Buttons */}
+          <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
+            <Button
+              type="submit"
+              variant="contained"
+              startIcon={loading ? <CircularProgress size={20} /> : <Save />}
+              disabled={loading}
+              fullWidth
+            >
+              {loading ? 'Creating...' : 'Create Treatment'}
+            </Button>
+            
+            <Button
+              type="button"
+              onClick={handleReset}
+              variant="outlined"
+              startIcon={<Refresh />}
+              disabled={loading}
+            >
+              Reset
+            </Button>
+            
+            <Button
+              type="button"
+              onClick={onCancel}
+              variant="outlined"
+              color="secondary"
+              startIcon={<Cancel />}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+          </Stack>
+        </Stack>
+      </Box>
+    </Paper>
   );
 };
 

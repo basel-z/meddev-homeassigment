@@ -22,6 +22,19 @@
  */
 
 import React from 'react';
+import {
+  Paper,
+  Typography,
+  Grid,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Button,
+  Box,
+} from '@mui/material';
+import { FilterList, Clear } from '@mui/icons-material';
 
 const TreatmentFilters = ({ 
   filters, 
@@ -55,9 +68,10 @@ const TreatmentFilters = ({
    * @param {React.ChangeEvent<HTMLSelectElement>} e - Select change event
    */
   const handleTypeChange = (e) => {
+    const value = e.target.value;
     onFiltersChange({
       ...filters,
-      treatmentType: e.target.value
+      treatmentType: value
     });
   };
 
@@ -73,60 +87,109 @@ const TreatmentFilters = ({
   };
 
   return (
-    <div className="treatment-filters">
-      <h3>Filter Treatments</h3>
+    <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
+      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <FilterList color="primary" />
+        Filter Treatments
+      </Typography>
       
-      <div className="filter-row">
+      <Grid container spacing={3} alignItems="center">
         {/* Date Range Filters */}
-        <div className="filter-group">
-          <label htmlFor="dateFrom">From Date:</label>
-          <input
+        <Grid item xs={12} sm={6} md={3}>
+          <TextField
+            fullWidth
             type="date"
-            id="dateFrom"
+            label="From Date"
             value={filters.dateFrom}
             onChange={handleDateFromChange}
-            className="filter-input"
+            variant="outlined"
+            size="small"
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
-        </div>
+        </Grid>
 
-        <div className="filter-group">
-          <label htmlFor="dateTo">To Date:</label>
-          <input
+        <Grid item xs={12} sm={6} md={3}>
+          <TextField
+            fullWidth
             type="date"
-            id="dateTo"
+            label="To Date"
             value={filters.dateTo}
             onChange={handleDateToChange}
-            className="filter-input"
+            variant="outlined"
+            size="small"
+            InputLabelProps={{
+              shrink: true,
+            }}
           />
-        </div>
+        </Grid>
 
         {/* Treatment Type Filter */}
-        <div className="filter-group">
-          <label htmlFor="treatmentType">Treatment Type:</label>
-          <select
-            id="treatmentType"
-            value={filters.treatmentType}
-            onChange={handleTypeChange}
-            className="filter-input"
-          >
-            <option value="">All Types</option>
-            {availableTypes.map(type => (
-              <option key={type} value={type}>{type}</option>
-            ))}
-          </select>
-        </div>
+        <Grid item xs={12} sm={6} md={3}>
+          <FormControl fullWidth size="small">
+            <InputLabel 
+              id="treatment-type-filter-label"
+              shrink={true}
+            >
+              Treatment Type
+            </InputLabel>
+            <Select
+              labelId="treatment-type-filter-label"
+              id="treatment-type-filter"
+              value={filters.treatmentType || ''}
+              onChange={handleTypeChange}
+              label="Treatment Type"
+              displayEmpty
+              notched={true}
+              sx={{ 
+                minWidth: 200,
+                '& .MuiSelect-select': {
+                  overflow: 'visible',
+                  textOverflow: 'clip',
+                  whiteSpace: 'nowrap',
+                  paddingRight: '32px !important'
+                }
+              }}
+              renderValue={(selected) => {
+                if (!selected || selected === '') {
+                  return 'All Types';
+                }
+                return selected;
+              }}
+            >
+              <MenuItem value="">All Types</MenuItem>
+              {availableTypes && availableTypes.length > 0 ? (
+                availableTypes.map(type => (
+                  <MenuItem key={type} value={type}>
+                    {type}
+                  </MenuItem>
+                ))
+              ) : (
+                <>
+                  <MenuItem value="Physiotherapy">Physiotherapy</MenuItem>
+                  <MenuItem value="Ultrasound">Ultrasound</MenuItem>
+                  <MenuItem value="Stimulation">Stimulation</MenuItem>
+                </>
+              )}
+            </Select>
+          </FormControl>
+        </Grid>
 
         {/* Clear Filters Button */}
-        <div className="filter-group">
-          <button
+        <Grid item xs={12} sm={6} md={3}>
+          <Button
+            fullWidth
             onClick={handleClearFilters}
-            className="clear-filters-button"
+            variant="outlined"
+            startIcon={<Clear />}
+            size="small"
           >
             Clear Filters
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </Grid>
+      </Grid>
+    </Paper>
   );
 };
 

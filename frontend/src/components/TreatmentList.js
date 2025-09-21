@@ -19,6 +19,31 @@
  */
 
 import React, { useState } from 'react';
+import {
+  Card,
+  CardContent,
+  Typography,
+  Grid,
+  Box,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Chip,
+  CircularProgress,
+  Alert,
+  Paper,
+  Divider,
+  Stack,
+} from '@mui/material';
+import {
+  Delete,
+  Person,
+  Schedule,
+  Notes,
+  LocalHospital,
+} from '@mui/icons-material';
 import { treatmentService } from '../services/api';
 
 const TreatmentList = ({ treatments, loading, onTreatmentDeleted }) => {
@@ -101,181 +126,154 @@ const TreatmentList = ({ treatments, loading, onTreatmentDeleted }) => {
   // Loading state display
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Loading treatments...</p>
-      </div>
+      <Box display="flex" flexDirection="column" alignItems="center" py={4}>
+        <CircularProgress size={48} />
+        <Typography variant="body1" color="text.secondary" sx={{ mt: 2 }}>
+          Loading treatments...
+        </Typography>
+      </Box>
     );
   }
 
   // Empty state display
   if (treatments.length === 0) {
     return (
-      <div className="empty-state">
-        <div className="empty-icon">📋</div>
-        <h3>No treatments found</h3>
-        <p>Start by adding your first treatment record using the "Add New Treatment" button above.</p>
-      </div>
+      <Paper elevation={1} sx={{ p: 4, textAlign: 'center' }}>
+        <LocalHospital sx={{ fontSize: 64, color: 'grey.400', mb: 2 }} />
+        <Typography variant="h6" gutterBottom>
+          No treatments found
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Start by adding your first treatment record using the "Add New Treatment" button above.
+        </Typography>
+      </Paper>
     );
   }
 
   return (
-    <div className="treatment-list">
+    <Box>
       {/* Delete Error Display */}
       {deleteError && (
-        <div className="error-message">
+        <Alert severity="error" sx={{ mb: 2 }}>
           {deleteError}
-        </div>
+        </Alert>
       )}
 
       {/* Treatments Count Display */}
-      <div className="treatments-count">
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         Showing {treatments.length} treatment{treatments.length !== 1 ? 's' : ''}
-      </div>
+      </Typography>
 
       {/* Treatment Cards Grid */}
-      <div className="treatments-grid">
+      <Grid container spacing={3}>
         {treatments.map((treatment) => (
-          <div key={treatment.id} className="treatment-card">
-            {/* Card Header with Patient Name and Treatment Type */}
-            <div className="treatment-header">
-              <h3 className="patient-name">{treatment.patient_name}</h3>
-              <span className={`treatment-type type-${treatment.treatment_type.toLowerCase()}`}>
-                {treatment.treatment_type}
-              </span>
-            </div>
+          <Grid item xs={12} md={6} lg={4} key={treatment.id}>
+            <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <CardContent sx={{ flexGrow: 1 }}>
+                {/* Card Header with Patient Name and Treatment Type */}
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Person color="primary" />
+                    {treatment.patient_name}
+                  </Typography>
+                  <Chip 
+                    label={treatment.treatment_type}
+                    color="primary"
+                    variant="outlined"
+                    size="small"
+                  />
+                </Box>
 
-            {/* Treatment Details */}
-            <div className="treatment-details">
-              <div className="detail-row">
-                <span className="detail-label">Treatment Date:</span>
-                <span className="detail-value">{formatDate(treatment.treatment_date)}</span>
-              </div>
+                <Divider sx={{ my: 2 }} />
 
-              <div className="detail-row">
-                <span className="detail-label">Record Created:</span>
-                <span className="detail-value">{formatDateTime(treatment.created_at)}</span>
-              </div>
+                {/* Treatment Details */}
+                <Stack spacing={1}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Schedule color="action" fontSize="small" />
+                    <Typography variant="caption" color="text.secondary">
+                      Treatment Date:
+                    </Typography>
+                    <Typography variant="body2">
+                      {formatDate(treatment.treatment_date)}
+                    </Typography>
+                  </Box>
 
-              {/* Optional Notes Display */}
-              {treatment.notes && (
-                <div className="detail-row notes-row">
-                  <span className="detail-label">Notes:</span>
-                  <p className="detail-value notes-text">{treatment.notes}</p>
-                </div>
-              )}
-            </div>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Schedule color="action" fontSize="small" />
+                    <Typography variant="caption" color="text.secondary">
+                      Record Created:
+                    </Typography>
+                    <Typography variant="body2">
+                      {formatDateTime(treatment.created_at)}
+                    </Typography>
+                  </Box>
 
-            {/* Treatment Actions (Delete with Confirmation) */}
-            <div className="treatment-actions">
-              {confirmDeleteId === treatment.id ? (
-                <div className="delete-confirmation">
-                  <p>Are you sure you want to delete this treatment?</p>
-                  <div className="confirmation-buttons">
-                    <button
-                      onClick={() => handleConfirmDelete(treatment.id)}
-                      disabled={deletingId === treatment.id}
-                      className="confirm-delete-button"
-                    >
-                      {deletingId === treatment.id ? 'Deleting...' : 'Yes, Delete'}
-                    </button>
-                    <button
-                      onClick={handleCancelDelete}
-                      disabled={deletingId === treatment.id}
-                      className="cancel-delete-button"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button
+                  {/* Optional Notes Display */}
+                  {treatment.notes && (
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Notes color="action" fontSize="small" />
+                        <Typography variant="caption" color="text.secondary">
+                          Notes:
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary" sx={{ ml: 3, fontStyle: 'italic' }}>
+                        {treatment.notes}
+                      </Typography>
+                    </Box>
+                  )}
+                </Stack>
+              </CardContent>
+
+              {/* Treatment Actions (Delete with Confirmation) */}
+              <Box sx={{ p: 2, pt: 0 }}>
+                <Button
                   onClick={() => handleDeleteClick(treatment.id)}
                   disabled={deletingId === treatment.id}
-                  className="delete-button"
+                  variant="outlined"
+                  color="error"
+                  size="small"
+                  startIcon={deletingId === treatment.id ? <CircularProgress size={16} /> : <Delete />}
+                  fullWidth
                 >
                   {deletingId === treatment.id ? 'Deleting...' : 'Delete'}
-                </button>
-              )}
-            </div>
-          </div>
+                </Button>
+              </Box>
+            </Card>
+          </Grid>
         ))}
-      </div>
+      </Grid>
 
-      {/* Alternative Table View for Larger Screens */}
-      <div className="treatments-table-container">
-        <table className="treatments-table">
-          <thead>
-            <tr>
-              <th>Patient Name</th>
-              <th>Treatment Type</th>
-              <th>Treatment Date</th>
-              <th>Notes</th>
-              <th>Created</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {treatments.map((treatment) => (
-              <tr key={treatment.id}>
-                <td className="patient-name-cell">{treatment.patient_name}</td>
-                <td>
-                  <span className={`treatment-type-badge type-${treatment.treatment_type.toLowerCase()}`}>
-                    {treatment.treatment_type}
-                  </span>
-                </td>
-                <td className="date-cell">{formatDate(treatment.treatment_date)}</td>
-                <td className="notes-cell">
-                  {treatment.notes ? (
-                    <div className="notes-preview" title={treatment.notes}>
-                      {treatment.notes.length > 50 
-                        ? `${treatment.notes.substring(0, 50)}...` 
-                        : treatment.notes
-                      }
-                    </div>
-                  ) : (
-                    <span className="no-notes">—</span>
-                  )}
-                </td>
-                <td className="created-cell">{formatDateTime(treatment.created_at)}</td>
-                <td className="actions-cell">
-                  {/* Table Delete Confirmation - Compact Version */}
-                  {confirmDeleteId === treatment.id ? (
-                    <div className="table-delete-confirmation">
-                      <button
-                        onClick={() => handleConfirmDelete(treatment.id)}
-                        disabled={deletingId === treatment.id}
-                        className="confirm-delete-button small"
-                        title="Confirm deletion"
-                      >
-                        ✓
-                      </button>
-                      <button
-                        onClick={handleCancelDelete}
-                        disabled={deletingId === treatment.id}
-                        className="cancel-delete-button small"
-                        title="Cancel deletion"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => handleDeleteClick(treatment.id)}
-                      disabled={deletingId === treatment.id}
-                      className="delete-button small"
-                      title="Delete treatment"
-                    >
-                      🗑️
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={confirmDeleteId !== null}
+        onClose={handleCancelDelete}
+        aria-labelledby="delete-dialog-title"
+      >
+        <DialogTitle id="delete-dialog-title">
+          Confirm Deletion
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete this treatment record? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelDelete} disabled={deletingId !== null}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => handleConfirmDelete(confirmDeleteId)}
+            disabled={deletingId !== null}
+            color="error"
+            variant="contained"
+            startIcon={deletingId !== null ? <CircularProgress size={16} /> : <Delete />}
+          >
+            {deletingId !== null ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 };
 
