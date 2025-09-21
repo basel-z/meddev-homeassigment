@@ -1,16 +1,49 @@
+/**
+ * TreatmentList Component
+ * 
+ * A React component that displays a list of treatment records in a card format.
+ * Includes features for deletion with confirmation, loading states, and empty state handling.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Array} props.treatments - Array of treatment objects to display
+ * @param {boolean} props.loading - Loading state indicator
+ * @param {Function} props.onTreatmentDeleted - Callback function called when a treatment is deleted
+ * 
+ * @example
+ * <TreatmentList
+ *   treatments={filteredTreatments}
+ *   loading={isLoading}
+ *   onTreatmentDeleted={() => refreshTreatments()}
+ * />
+ */
+
 import React, { useState } from 'react';
 import { treatmentService } from '../services/api';
 
 const TreatmentList = ({ treatments, loading, onTreatmentDeleted }) => {
+  /** @type {number|null} ID of treatment currently being deleted */
   const [deletingId, setDeletingId] = useState(null);
+  
+  /** @type {string|null} Error message for delete operations */
   const [deleteError, setDeleteError] = useState(null);
+  
+  /** @type {number|null} ID of treatment awaiting delete confirmation */
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
+  /**
+   * Initiates the delete confirmation process for a treatment
+   * @param {number} treatmentId - ID of the treatment to delete
+   */
   const handleDeleteClick = (treatmentId) => {
     setConfirmDeleteId(treatmentId);
     setDeleteError(null);
   };
 
+  /**
+   * Confirms and executes the deletion of a treatment record
+   * @param {number} treatmentId - ID of the treatment to delete
+   */
   const handleConfirmDelete = async (treatmentId) => {
     setDeletingId(treatmentId);
     setDeleteError(null);
@@ -18,7 +51,7 @@ const TreatmentList = ({ treatments, loading, onTreatmentDeleted }) => {
     try {
       await treatmentService.deleteTreatment(treatmentId);
       setConfirmDeleteId(null);
-      onTreatmentDeleted();
+      onTreatmentDeleted(); // Notify parent component to refresh list
     } catch (error) {
       console.error('Error deleting treatment:', error);
       setDeleteError(error.error || 'Failed to delete treatment. Please try again.');
@@ -27,11 +60,19 @@ const TreatmentList = ({ treatments, loading, onTreatmentDeleted }) => {
     }
   };
 
+  /**
+   * Cancels the delete confirmation dialog
+   */
   const handleCancelDelete = () => {
     setConfirmDeleteId(null);
     setDeleteError(null);
   };
 
+  /**
+   * Formats a date string into a user-friendly display format
+   * @param {string} dateString - Date string in YYYY-MM-DD format
+   * @returns {string} Formatted date string (e.g., "Jan 15, 2025")
+   */
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -41,6 +82,11 @@ const TreatmentList = ({ treatments, loading, onTreatmentDeleted }) => {
     });
   };
 
+  /**
+   * Formats a datetime string into a user-friendly display format
+   * @param {string} dateTimeString - ISO datetime string
+   * @returns {string} Formatted datetime string (e.g., "Jan 15, 2025, 02:30 PM")
+   */
   const formatDateTime = (dateTimeString) => {
     const date = new Date(dateTimeString);
     return date.toLocaleString('en-US', {
@@ -52,6 +98,7 @@ const TreatmentList = ({ treatments, loading, onTreatmentDeleted }) => {
     });
   };
 
+  // Loading state display
   if (loading) {
     return (
       <div className="loading-container">
@@ -61,6 +108,7 @@ const TreatmentList = ({ treatments, loading, onTreatmentDeleted }) => {
     );
   }
 
+  // Empty state display
   if (treatments.length === 0) {
     return (
       <div className="empty-state">
@@ -73,19 +121,23 @@ const TreatmentList = ({ treatments, loading, onTreatmentDeleted }) => {
 
   return (
     <div className="treatment-list">
+      {/* Delete Error Display */}
       {deleteError && (
         <div className="error-message">
           {deleteError}
         </div>
       )}
 
+      {/* Treatments Count Display */}
       <div className="treatments-count">
         Showing {treatments.length} treatment{treatments.length !== 1 ? 's' : ''}
       </div>
 
+      {/* Treatment Cards Grid */}
       <div className="treatments-grid">
         {treatments.map((treatment) => (
           <div key={treatment.id} className="treatment-card">
+            {/* Card Header with Patient Name and Treatment Type */}
             <div className="treatment-header">
               <h3 className="patient-name">{treatment.patient_name}</h3>
               <span className={`treatment-type type-${treatment.treatment_type.toLowerCase()}`}>
@@ -93,6 +145,7 @@ const TreatmentList = ({ treatments, loading, onTreatmentDeleted }) => {
               </span>
             </div>
 
+            {/* Treatment Details */}
             <div className="treatment-details">
               <div className="detail-row">
                 <span className="detail-label">Treatment Date:</span>
@@ -104,6 +157,7 @@ const TreatmentList = ({ treatments, loading, onTreatmentDeleted }) => {
                 <span className="detail-value">{formatDateTime(treatment.created_at)}</span>
               </div>
 
+              {/* Optional Notes Display */}
               {treatment.notes && (
                 <div className="detail-row notes-row">
                   <span className="detail-label">Notes:</span>
@@ -112,6 +166,7 @@ const TreatmentList = ({ treatments, loading, onTreatmentDeleted }) => {
               )}
             </div>
 
+            {/* Treatment Actions (Delete with Confirmation) */}
             <div className="treatment-actions">
               {confirmDeleteId === treatment.id ? (
                 <div className="delete-confirmation">
@@ -147,7 +202,7 @@ const TreatmentList = ({ treatments, loading, onTreatmentDeleted }) => {
         ))}
       </div>
 
-      {/* Alternative table view for larger screens */}
+      {/* Alternative Table View for Larger Screens */}
       <div className="treatments-table-container">
         <table className="treatments-table">
           <thead>
@@ -169,7 +224,7 @@ const TreatmentList = ({ treatments, loading, onTreatmentDeleted }) => {
                     {treatment.treatment_type}
                   </span>
                 </td>
-                <td>{formatDate(treatment.treatment_date)}</td>
+                <td className="date-cell">{formatDate(treatment.treatment_date)}</td>
                 <td className="notes-cell">
                   {treatment.notes ? (
                     <div className="notes-preview" title={treatment.notes}>
@@ -184,12 +239,14 @@ const TreatmentList = ({ treatments, loading, onTreatmentDeleted }) => {
                 </td>
                 <td className="created-cell">{formatDateTime(treatment.created_at)}</td>
                 <td className="actions-cell">
+                  {/* Table Delete Confirmation - Compact Version */}
                   {confirmDeleteId === treatment.id ? (
                     <div className="table-delete-confirmation">
                       <button
                         onClick={() => handleConfirmDelete(treatment.id)}
                         disabled={deletingId === treatment.id}
                         className="confirm-delete-button small"
+                        title="Confirm deletion"
                       >
                         ✓
                       </button>
@@ -197,6 +254,7 @@ const TreatmentList = ({ treatments, loading, onTreatmentDeleted }) => {
                         onClick={handleCancelDelete}
                         disabled={deletingId === treatment.id}
                         className="cancel-delete-button small"
+                        title="Cancel deletion"
                       >
                         ✕
                       </button>

@@ -1,3 +1,26 @@
+/**
+ * TreatmentFilters Component
+ * 
+ * A React component that provides filtering controls for the treatment list.
+ * Allows users to filter treatments by date range and treatment type.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.filters - Current filter values
+ * @param {string} props.filters.dateFrom - Start date filter (YYYY-MM-DD format)
+ * @param {string} props.filters.dateTo - End date filter (YYYY-MM-DD format)
+ * @param {string} props.filters.treatmentType - Treatment type filter
+ * @param {Function} props.onFiltersChange - Callback function called when filters change
+ * @param {Array<string>} props.availableTypes - Available treatment types for dropdown
+ * 
+ * @example
+ * <TreatmentFilters
+ *   filters={currentFilters}
+ *   onFiltersChange={setFilters}
+ *   availableTypes={['Physiotherapy', 'Ultrasound', 'Stimulation']}
+ * />
+ */
+
 import React from 'react';
 
 const TreatmentFilters = ({ 
@@ -5,6 +28,10 @@ const TreatmentFilters = ({
   onFiltersChange, 
   availableTypes 
 }) => {
+  /**
+   * Handles date range start change
+   * @param {React.ChangeEvent<HTMLInputElement>} e - Input change event
+   */
   const handleDateFromChange = (e) => {
     onFiltersChange({
       ...filters,
@@ -12,6 +39,10 @@ const TreatmentFilters = ({
     });
   };
 
+  /**
+   * Handles date range end change
+   * @param {React.ChangeEvent<HTMLInputElement>} e - Input change event
+   */
   const handleDateToChange = (e) => {
     onFiltersChange({
       ...filters,
@@ -19,6 +50,10 @@ const TreatmentFilters = ({
     });
   };
 
+  /**
+   * Handles treatment type filter change
+   * @param {React.ChangeEvent<HTMLSelectElement>} e - Select change event
+   */
   const handleTypeChange = (e) => {
     onFiltersChange({
       ...filters,
@@ -26,6 +61,9 @@ const TreatmentFilters = ({
     });
   };
 
+  /**
+   * Clears all filters and resets to default state
+   */
   const handleClearFilters = () => {
     onFiltersChange({
       dateFrom: '',
@@ -39,6 +77,7 @@ const TreatmentFilters = ({
       <h3>Filter Treatments</h3>
       
       <div className="filter-row">
+        {/* Date Range Filters */}
         <div className="filter-group">
           <label htmlFor="dateFrom">From Date:</label>
           <input
@@ -61,6 +100,7 @@ const TreatmentFilters = ({
           />
         </div>
 
+        {/* Treatment Type Filter */}
         <div className="filter-group">
           <label htmlFor="treatmentType">Treatment Type:</label>
           <select
@@ -76,6 +116,7 @@ const TreatmentFilters = ({
           </select>
         </div>
 
+        {/* Clear Filters Button */}
         <div className="filter-group">
           <button
             onClick={handleClearFilters}

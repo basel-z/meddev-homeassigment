@@ -1,7 +1,33 @@
+/**
+ * TreatmentForm Component
+ * 
+ * A React component that provides a form interface for creating new treatment records.
+ * Includes form validation, error handling, and loading states.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Function} props.onTreatmentCreated - Callback function called when treatment is successfully created
+ * @param {Function} props.onCancel - Callback function called when user cancels form
+ * 
+ * @example
+ * <TreatmentForm 
+ *   onTreatmentCreated={() => handleRefresh()}
+ *   onCancel={() => setShowForm(false)}
+ * />
+ */
+
 import React, { useState } from 'react';
 import { treatmentService } from '../services/api';
 
 const TreatmentForm = ({ onTreatmentCreated, onCancel }) => {
+  /**
+   * Form data state object containing all treatment fields
+   * @type {Object}
+   * @property {string} patient_name - Patient's full name
+   * @property {string} treatment_type - Type of treatment (Physiotherapy/Ultrasound/Stimulation)
+   * @property {string} treatment_date - Treatment date in YYYY-MM-DD format
+   * @property {string} notes - Optional treatment notes
+   */
   const [formData, setFormData] = useState({
     patient_name: '',
     treatment_type: '',
@@ -9,12 +35,22 @@ const TreatmentForm = ({ onTreatmentCreated, onCancel }) => {
     notes: ''
   });
   
+  /** @type {boolean} Loading state for form submission */
   const [loading, setLoading] = useState(false);
+  
+  /** @type {Array<string>} General form validation errors */
   const [errors, setErrors] = useState([]);
+  
+  /** @type {Object} Field-specific validation errors */
   const [fieldErrors, setFieldErrors] = useState({});
 
+  /** @type {Array<string>} Available treatment types for dropdown */
   const treatmentTypes = ['Physiotherapy', 'Ultrasound', 'Stimulation'];
 
+  /**
+   * Handles input field changes and clears field-specific errors
+   * @param {React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>} e - Change event
+   */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -31,20 +67,27 @@ const TreatmentForm = ({ onTreatmentCreated, onCancel }) => {
     }
   };
 
+  /**
+   * Validates form data before submission
+   * @returns {boolean} True if form is valid, false otherwise
+   */
   const validateForm = () => {
     const newErrors = [];
     const newFieldErrors = {};
 
+    // Validate patient name
     if (!formData.patient_name.trim()) {
       newErrors.push('Patient name is required');
       newFieldErrors.patient_name = 'Required';
     }
 
+    // Validate treatment type
     if (!formData.treatment_type) {
       newErrors.push('Treatment type is required');
       newFieldErrors.treatment_type = 'Required';
     }
 
+    // Validate treatment date
     if (!formData.treatment_date) {
       newErrors.push('Treatment date is required');
       newFieldErrors.treatment_date = 'Required';
@@ -55,6 +98,10 @@ const TreatmentForm = ({ onTreatmentCreated, onCancel }) => {
     return newErrors.length === 0;
   };
 
+  /**
+   * Handles form submission with validation and API call
+   * @param {React.FormEvent<HTMLFormElement>} e - Form submit event
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -68,7 +115,7 @@ const TreatmentForm = ({ onTreatmentCreated, onCancel }) => {
     try {
       await treatmentService.createTreatment(formData);
       
-      // Reset form
+      // Reset form to initial state
       setFormData({
         patient_name: '',
         treatment_type: '',
@@ -76,12 +123,13 @@ const TreatmentForm = ({ onTreatmentCreated, onCancel }) => {
         notes: ''
       });
       
-      // Notify parent component
+      // Notify parent component of successful creation
       onTreatmentCreated();
       
     } catch (error) {
       console.error('Error creating treatment:', error);
       
+      // Handle different error response formats
       if (error.errors && Array.isArray(error.errors)) {
         setErrors(error.errors);
       } else {
@@ -92,6 +140,9 @@ const TreatmentForm = ({ onTreatmentCreated, onCancel }) => {
     }
   };
 
+  /**
+   * Resets form to initial state
+   */
   const handleReset = () => {
     setFormData({
       patient_name: '',
@@ -103,7 +154,10 @@ const TreatmentForm = ({ onTreatmentCreated, onCancel }) => {
     setFieldErrors({});
   };
 
-  // Get today's date in YYYY-MM-DD format for date input max attribute
+  /**
+   * Gets today's date in YYYY-MM-DD format for date input validation
+   * @returns {string} Today's date in YYYY-MM-DD format
+   */
   const getTodayDate = () => {
     const today = new Date();
     return today.toISOString().split('T')[0];
@@ -112,6 +166,7 @@ const TreatmentForm = ({ onTreatmentCreated, onCancel }) => {
   return (
     <div className="treatment-form">
       <form onSubmit={handleSubmit} className="form">
+        {/* Error Messages Display */}
         {errors.length > 0 && (
           <div className="error-messages">
             <h4>Please fix the following errors:</h4>
@@ -123,6 +178,7 @@ const TreatmentForm = ({ onTreatmentCreated, onCancel }) => {
           </div>
         )}
 
+        {/* Patient Name Input */}
         <div className="form-group">
           <label htmlFor="patient_name" className="form-label">
             Patient Name *
@@ -143,6 +199,7 @@ const TreatmentForm = ({ onTreatmentCreated, onCancel }) => {
           )}
         </div>
 
+        {/* Treatment Type Selection */}
         <div className="form-group">
           <label htmlFor="treatment_type" className="form-label">
             Treatment Type *
@@ -168,6 +225,7 @@ const TreatmentForm = ({ onTreatmentCreated, onCancel }) => {
           )}
         </div>
 
+        {/* Treatment Date Input */}
         <div className="form-group">
           <label htmlFor="treatment_date" className="form-label">
             Treatment Date *
@@ -187,6 +245,7 @@ const TreatmentForm = ({ onTreatmentCreated, onCancel }) => {
           )}
         </div>
 
+        {/* Notes Textarea */}
         <div className="form-group">
           <label htmlFor="notes" className="form-label">
             Notes (Optional)
@@ -203,6 +262,7 @@ const TreatmentForm = ({ onTreatmentCreated, onCancel }) => {
           />
         </div>
 
+        {/* Form Action Buttons */}
         <div className="form-actions">
           <button
             type="submit"
