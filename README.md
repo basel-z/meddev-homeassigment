@@ -6,6 +6,8 @@ A web application for healthcare providers to track patient treatments with a Re
 
 - Create new treatment records with patient details
 - View all treatments in a clean, organized list
+- Filter by date and treatment type
+- Show Statistcs of treatments
 - Delete treatments as needed
 - Responsive design for desktop and mobile
 - Input validation and error handling
